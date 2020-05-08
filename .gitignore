@@ -1,0 +1,11 @@
+.idea
+vendor
+.pages
+bin
+cache
+coverage.out
+configuration/*/*
+!configuration/defaults/*
+c.out
+coverage.html
+.golangci.yml

@@ -1,0 +1,101 @@
+package service
+
+import (
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/yterajima/go-sitemap"
+
+	"github.com/spacetab-io/roastmap-go/pkg/models"
+)
+
+func (s *service) PreparePages(links []string) ([]*models.PageData, error) {
+	pages := make([]*models.PageData, 0)
+
+	for _, link := range links {
+		uri, err := parseURI(link)
+		if err != nil {
+			return nil, fmt.Errorf("parse link url error: %v", err)
+		}
+
+		page := &models.PageData{URL: uri, Attempts: 0}
+		page.MakeFileName(s.r.GzipFile())
+		pages = append(pages, page)
+	}
+
+	return pages, nil
+}
+
+func (s *service) GetLinksForRender() ([]string, error) {
+	switch s.cfg.Lookup.Type {
+	case models.LookupTypeSitemap:
+		return s.GetUrlsFromSitemap()
+	case models.LookupTypeURLs:
+		return s.GetUrlsFromLinkList()
+	case models.LookupTypeAll:
+		links, err := s.GetUrlsFromSitemap()
+		if err != nil {
+			return nil, err
+		}
+
+		configLinks, err := s.GetUrlsFromLinkList()
+		if err != nil {
+			return nil, err
+		}
+
+		for _, configLink := range configLinks {
+			if !IsInSlice(links, configLink) {
+				links = append(links, configLink)
+			}
+		}
+
+		return links, nil
+	}
+
+	return nil, errors.New("lookup type is wrong or not set")
+}
+
+func IsInSlice(links []string, link string) bool {
+	for _, l := range links {
+		if l == link {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (s *service) GetUrlsFromLinkList() ([]string, error) {
+	if s.cfg.Lookup.BaseURL == "" {
+		return nil, errors.New("base_url is not set in config")
+	}
+
+	var links = make([]string, 0)
+
+	for _, link := range s.cfg.Lookup.PageURLs {
+		if strings.Contains(link, "https://") {
+			return nil, errors.New("link contains base url")
+		}
+
+		links = append(links, s.cfg.Lookup.BaseURL+link)
+	}
+
+	return links, nil
+}
+
+func (s *service) GetUrlsFromSitemap() ([]string, error) {
+	result := make([]string, 0)
+	smap, err := sitemap.Get(s.cfg.Lookup.SitemapURL, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Print URL in sitemap.xml
+	for _, URL := range smap.URL {
+		result = append(result, URL.Loc)
+	}
+
+	return result, err
+}

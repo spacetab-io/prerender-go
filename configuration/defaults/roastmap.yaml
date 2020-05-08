@@ -1,0 +1,19 @@
+defaults: # stage name
+  roastmap:
+    lookup: #
+      base_url: "" # target site base url
+      type: sitemap # sitemap, urls, all
+      sitemap: "" # sitemap url
+      urls: [] # additional urls to parse
+    wait_for: console # console, element - page ready lookup strategy configuration
+    console_string: "" # string in console that fired when DOM loading is finished and ready to read
+    element:
+      type: "div"
+      id: ""
+      class: ""
+      attribute:
+        name: ""
+        value: ""
+    viewport:
+      width: 1680
+      height: 10000

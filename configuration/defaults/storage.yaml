@@ -1,0 +1,12 @@
+defaults:
+  storage:
+    type: local # local, s3
+    local:
+      storage_path: "./.pages"
+    s3:
+      gzip_file: false
+      bucket: ""
+      region: "eu-central-1"
+      access_key_id: ""
+      secret_key: ""
+      cdn_url: ""

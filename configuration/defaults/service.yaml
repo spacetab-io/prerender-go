@@ -1,0 +1,8 @@
+defaults:
+  service:
+    name: "SPA roastmap"
+    about: "Приложение для рендера SPA приложений как html странички"
+    version: "0.0.1"
+    docs: "---"
+    contacts: "ask@spacetab.io"
+    copyright: "spacetab.io © 2020"
