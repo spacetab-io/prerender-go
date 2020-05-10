@@ -8,7 +8,7 @@ import (
 	config "github.com/spacetab-io/configuration-go"
 	"gopkg.in/yaml.v2"
 
-	"github.com/spacetab-io/roastmap-go/pkg/models"
+	"github.com/spacetab-io/prerender-go/pkg/models"
 )
 
 //Config config object
@@ -24,12 +24,13 @@ type serviceConfig struct {
 }
 
 type S3Config struct {
-	Region      string `yaml:"region"`
-	Bucket      string `yaml:"bucket"`
-	GzipFile    bool   `yaml:"gzip_file"`
-	AccessKeyID string `yaml:"access_key_id"`
-	SecretKey   string `yaml:"secret_key"`
-	CDNUrl      string `yaml:"cdn_url"`
+	Region       string `yaml:"region"`
+	Bucket       string `yaml:"bucket"`
+	BucketFolder string `yaml:"bucket_folder"`
+	GzipFile     bool   `yaml:"gzip_file"`
+	AccessKeyID  string `yaml:"access_key_id"`
+	SecretKey    string `yaml:"secret_key"`
+	CDNUrl       string `yaml:"cdn_url"`
 }
 
 type LocalStorageConfig struct {
@@ -47,16 +48,16 @@ type ElementConfig struct {
 }
 
 type lookupConfig struct {
-	Type       string   `yaml:"type"`
-	SitemapURL string   `yaml:"sitemap"`
-	PageURLs   []string `yaml:"urls"`
-	BaseURL    string   `yaml:"base_url"`
+	Type        string   `yaml:"type"`
+	SitemapURLs []string `yaml:"sitemaps"`
+	PageURLs    []string `yaml:"urls"`
+	BaseURL     string   `yaml:"base_url"`
 }
 
 func (c lookupConfig) GetSourceURL() string {
 	switch c.Type {
-	case models.LookupTypeSitemap:
-		return c.SitemapURL
+	case models.LookupTypeSitemaps:
+		return strings.Join(c.SitemapURLs, ",")
 	case models.LookupTypeURLs:
 		return strings.Join(c.PageURLs, ", ")
 	}
@@ -69,7 +70,7 @@ type viewportConfig struct {
 	Height int64 `yaml:"height"`
 }
 
-type RoastmapConfig struct {
+type PrerenderConfig struct {
 	Lookup        lookupConfig   `yaml:"lookup"`
 	WaitFor       string         `yaml:"wait_for"`
 	ConsoleString string         `yaml:"console_string"`
@@ -107,10 +108,10 @@ type sitemapConfig struct {
 
 // configuration file structure
 type configuration struct {
-	Service  serviceConfig  `yaml:"service"`
-	Sitemap  sitemapConfig  `yaml:"sitemap"`
-	Storage  StorageConfig  `yaml:"storage"`
-	Roastmap RoastmapConfig `yaml:"roastmap"`
+	Service   serviceConfig   `yaml:"service"`
+	Sitemap   sitemapConfig   `yaml:"sitemap"`
+	Storage   StorageConfig   `yaml:"storage"`
+	Prerender PrerenderConfig `yaml:"prerender"`
 }
 
 //Init initiates app config

@@ -1,9 +1,9 @@
 defaults: # stage name
-  roastmap:
+  prerender:
     lookup: #
       base_url: "" # target site base url
-      type: sitemap # sitemap, urls, all
-      sitemap: "" # sitemap url
+      type: sitemaps # sitemaps, urls, all
+      sitemaps: [] # sitemap urls
       urls: [] # additional urls to parse
     wait_for: console # console, element - page ready lookup strategy configuration
     console_string: "" # string in console that fired when DOM loading is finished and ready to read

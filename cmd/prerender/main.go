@@ -5,9 +5,9 @@ import (
 	"runtime"
 	"time"
 
-	cfg "github.com/spacetab-io/roastmap-go/configuration"
-	"github.com/spacetab-io/roastmap-go/pkg/service"
-	"github.com/spacetab-io/roastmap-go/pkg/storage"
+	cfg "github.com/spacetab-io/prerender-go/configuration"
+	"github.com/spacetab-io/prerender-go/pkg/service"
+	"github.com/spacetab-io/prerender-go/pkg/storage"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	srv := service.NewService(st, cfg.Config.Roastmap)
+	srv := service.NewService(st, cfg.Config.Prerender)
 
 	links, err := srv.GetLinksForRender()
 	if err != nil {

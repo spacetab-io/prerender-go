@@ -1,4 +1,4 @@
-module github.com/spacetab-io/roastmap-go
+module github.com/spacetab-io/prerender-go
 
 go 1.14
 

@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spacetab-io/roastmap-go/pkg/models"
+	"github.com/spacetab-io/prerender-go/pkg/models"
 )
 
 type storage struct {

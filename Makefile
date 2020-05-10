@@ -2,23 +2,23 @@ deps:
 	go mod vendor
 
 build:
-	go build -o ./bin/roastmap ./cmd/roastmap/main.go
+	go build -o ./bin/prerender ./cmd/prerender/main.go
 .PHONY: build
 
 build_vendor:
-	go build -mod=vendor -o ./bin/roastmap ./cmd/roastmap/main.go
+	go build -mod=vendor -o ./bin/prerender ./cmd/prerender/main.go
 .PHONY: build_vendor
 
 build_for_docker:
-	GOOS=linux GOARCH=amd64 go build -o ./bin/roastmap ./cmd/roastmap/main.go
+	GOOS=linux GOARCH=amd64 go build -o ./bin/prerender ./cmd/prerender/main.go
 .PHONY: build_for_docker
 
 build_vendor_for_docker:
-	GOOS=linux GOARCH=amd64 go build -mod=vendor -o ./bin/roastmap ./cmd/roastmap/main.go
+	GOOS=linux GOARCH=amd64 go build -mod=vendor -o ./bin/prerender ./cmd/prerender/main.go
 .PHONY: build_for_docker
 
 run:
-	./bin/roastmap
+	./bin/prerender
 .PHONY: run
 
 run_in_docker:
@@ -26,11 +26,11 @@ run_in_docker:
 	--rm \
 	--name headless-shell \
 	-v $$(pwd)/configuration/:/app/configuration/ \
-	-v $$(pwd)/bin/roastmap:/app/bin/roastmap \
+	-v $$(pwd)/bin/prerender:/app/bin/prerender \
 	-v $$(pwd)/pages:/app/pages \
 	-w /app \
 	alpeware/chrome-headless-trunk \
-	./bin/roastmap
+	./bin/prerender
 
 all: build_vendor
 .PHONY: all
@@ -73,6 +73,5 @@ test: deps test-unit coverage-html
 ## -------------------
 
 
-
 image:
-	docker build -t roastmap:latest .
+	docker build -t spacetabio/prerender-go:latest .

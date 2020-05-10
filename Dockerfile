@@ -13,4 +13,4 @@ COPY --from=build-env /app/bin/*                  /app/bin/
 COPY --from=build-env /app/Makefile               /app/
 COPY --from=build-env /app/configuration/defaults /app/configuration/defaults
 
-CMD ["/app/bin/roastmap"]
+CMD ["/app/bin/prerender"]

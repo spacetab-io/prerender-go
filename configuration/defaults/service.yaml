@@ -1,6 +1,6 @@
 defaults:
   service:
-    name: "SPA roastmap"
+    name: "SPA prerender"
     about: "Приложение для рендера SPA приложений как html странички"
     version: "0.0.1"
     docs: "---"

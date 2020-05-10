@@ -4,10 +4,10 @@ import (
 	"errors"
 	"strings"
 
-	cfg "github.com/spacetab-io/roastmap-go/configuration"
-	"github.com/spacetab-io/roastmap-go/pkg/service"
-	"github.com/spacetab-io/roastmap-go/pkg/storage/files"
-	"github.com/spacetab-io/roastmap-go/pkg/storage/s3"
+	cfg "github.com/spacetab-io/prerender-go/configuration"
+	"github.com/spacetab-io/prerender-go/pkg/service"
+	"github.com/spacetab-io/prerender-go/pkg/storage/files"
+	"github.com/spacetab-io/prerender-go/pkg/storage/s3"
 )
 
 const (

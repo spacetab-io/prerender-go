@@ -1,7 +1,7 @@
 package models
 
 const (
-	LookupTypeSitemap = "sitemap"
-	LookupTypeURLs    = "urls"
-	LookupTypeAll     = "all"
+	LookupTypeSitemaps = "sitemaps"
+	LookupTypeURLs     = "urls"
+	LookupTypeAll      = "all"
 )

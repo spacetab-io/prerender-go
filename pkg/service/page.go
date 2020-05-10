@@ -16,7 +16,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"golang.org/x/sync/semaphore"
 
-	"github.com/spacetab-io/roastmap-go/pkg/models"
+	"github.com/spacetab-io/prerender-go/pkg/models"
 )
 
 func (s service) GetPageBody(ctx context.Context, p *models.PageData) (err error) {
@@ -168,7 +168,7 @@ func parseURI(uri string) (*url.URL, error) {
 		uri += "?"
 	}
 
-	uri += "roastmap=true"
+	uri += "prerender=true"
 
 	return url.Parse(uri)
 }

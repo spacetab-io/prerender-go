@@ -7,7 +7,7 @@ import (
 
 	"github.com/yterajima/go-sitemap"
 
-	"github.com/spacetab-io/roastmap-go/pkg/models"
+	"github.com/spacetab-io/prerender-go/pkg/models"
 )
 
 func (s *service) PreparePages(links []string) ([]*models.PageData, error) {
@@ -29,17 +29,17 @@ func (s *service) PreparePages(links []string) ([]*models.PageData, error) {
 
 func (s *service) GetLinksForRender() ([]string, error) {
 	switch s.cfg.Lookup.Type {
-	case models.LookupTypeSitemap:
-		return s.GetUrlsFromSitemap()
+	case models.LookupTypeSitemaps:
+		return s.GetUrlsFromSitemaps()
 	case models.LookupTypeURLs:
-		return s.GetUrlsFromLinkList()
+		return s.GetUrlsFromLinksList()
 	case models.LookupTypeAll:
-		links, err := s.GetUrlsFromSitemap()
+		links, err := s.GetUrlsFromSitemaps()
 		if err != nil {
 			return nil, err
 		}
 
-		configLinks, err := s.GetUrlsFromLinkList()
+		configLinks, err := s.GetUrlsFromLinksList()
 		if err != nil {
 			return nil, err
 		}
@@ -66,7 +66,7 @@ func IsInSlice(links []string, link string) bool {
 	return false
 }
 
-func (s *service) GetUrlsFromLinkList() ([]string, error) {
+func (s *service) GetUrlsFromLinksList() ([]string, error) {
 	if s.cfg.Lookup.BaseURL == "" {
 		return nil, errors.New("base_url is not set in config")
 	}
@@ -84,18 +84,21 @@ func (s *service) GetUrlsFromLinkList() ([]string, error) {
 	return links, nil
 }
 
-func (s *service) GetUrlsFromSitemap() ([]string, error) {
-	result := make([]string, 0)
-	smap, err := sitemap.Get(s.cfg.Lookup.SitemapURL, nil)
+func (s *service) GetUrlsFromSitemaps() ([]string, error) {
+	links := make([]string, 0)
 
-	if err != nil {
-		return nil, err
+	for _, url := range s.cfg.Lookup.SitemapURLs {
+		smap, err := sitemap.Get(url, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, URL := range smap.URL {
+			if !IsInSlice(links, URL.Loc) {
+				links = append(links, URL.Loc)
+			}
+		}
 	}
 
-	// Print URL in sitemap.xml
-	for _, URL := range smap.URL {
-		result = append(result, URL.Loc)
-	}
-
-	return result, err
+	return links, nil
 }

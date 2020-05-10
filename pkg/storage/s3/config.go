@@ -9,8 +9,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 
-	cfg "github.com/spacetab-io/roastmap-go/configuration"
-	"github.com/spacetab-io/roastmap-go/pkg/models"
+	cfg "github.com/spacetab-io/prerender-go/configuration"
+	"github.com/spacetab-io/prerender-go/pkg/models"
 )
 
 type storage struct {
@@ -42,7 +42,7 @@ func (s storage) SaveData(pd *models.PageData) error {
 	// Upload the file to S3.
 	_, err := s.u.Upload(&s3manager.UploadInput{
 		Bucket:      aws.String(s.cfg.Bucket),
-		Key:         aws.String("/roastmap/" + pd.FileName),
+		Key:         aws.String(s.cfg.BucketFolder + pd.FileName),
 		Body:        bytes.NewReader(pd.Body),
 		ContentType: aws.String("text/html; charset=utf-8"),
 	})

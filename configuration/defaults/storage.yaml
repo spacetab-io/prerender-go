@@ -6,6 +6,7 @@ defaults:
     s3:
       gzip_file: false
       bucket: ""
+      bucket_folder: "/"
       region: "eu-central-1"
       access_key_id: ""
       secret_key: ""

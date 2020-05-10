@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"time"
 
-	cfg "github.com/spacetab-io/roastmap-go/configuration"
-	"github.com/spacetab-io/roastmap-go/pkg/models"
+	cfg "github.com/spacetab-io/prerender-go/configuration"
+	"github.com/spacetab-io/prerender-go/pkg/models"
 )
 
-func NewService(r Repository, roastmapConfig cfg.RoastmapConfig) Service {
-	return &service{r, roastmapConfig}
+func NewService(r Repository, prerenderConfig cfg.PrerenderConfig) Service {
+	return &service{r, prerenderConfig}
 }
 
 type service struct {
 	r   Repository
-	cfg cfg.RoastmapConfig
+	cfg cfg.PrerenderConfig
 }
 
 func (s *service) PrepareRenderReport(pages []*models.PageData, d time.Duration, procs int) {
@@ -52,8 +52,8 @@ func (s *service) PrepareRenderReport(pages []*models.PageData, d time.Duration,
 
 type Service interface {
 	GetLinksForRender() ([]string, error)
-	GetUrlsFromSitemap() ([]string, error)
-	GetUrlsFromLinkList() ([]string, error)
+	GetUrlsFromSitemaps() ([]string, error)
+	GetUrlsFromLinksList() ([]string, error)
 	PreparePages(links []string) ([]*models.PageData, error)
 
 	GetPageBody(ctx context.Context, p *models.PageData) error
