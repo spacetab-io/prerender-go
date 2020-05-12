@@ -78,7 +78,7 @@ type PrerenderConfig struct {
 	Viewport      viewportConfig `yaml:"viewport"`
 }
 
-func (ec ElementConfig) GetWaitElement(attrValue string) string {
+func (ec ElementConfig) GetWaitElement() string {
 	elem := ec.Type
 
 	if ec.ID != "" {
@@ -88,6 +88,11 @@ func (ec ElementConfig) GetWaitElement(attrValue string) string {
 	if ec.Class != "" && ec.ID == "" {
 		elem = "." + ec.Class
 	}
+	return elem
+}
+
+func (ec ElementConfig) GetWaitElementAttr(attrValue string) string {
+	elem := ec.GetWaitElement()
 
 	if ec.Attribute.Name != "" && ec.Attribute.Value != "" {
 		elem += fmt.Sprintf("[%s=%s]", ec.Attribute.Name, attrValue)

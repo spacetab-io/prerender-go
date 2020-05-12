@@ -1,3 +1,6 @@
+IMAGE_NAME = spacetabio/prerender-go
+IMAGE_VERSION = 0.1.1
+
 deps:
 	go mod vendor
 
@@ -74,4 +77,4 @@ test: deps test-unit coverage-html
 
 
 image:
-	docker build -t spacetabio/prerender-go:latest .
+	docker build -t ${IMAGE_NAME}:${IMAGE_VERSION} .
