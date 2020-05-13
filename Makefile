@@ -1,5 +1,5 @@
 IMAGE_NAME = spacetabio/prerender-go
-IMAGE_VERSION = 0.1.1
+IMAGE_VERSION = 0.1.2
 
 deps:
 	go mod vendor
@@ -52,6 +52,8 @@ run_headless_shell:
      --name=chrome-headless \
      -v /tmp/chromedata/:/data alpeware/chrome-headless-trunk bash
 
+## -------------------
+
 ## lint and test stuff
 
 get_lint_config:
@@ -75,6 +77,10 @@ test: deps test-unit coverage-html
 
 ## -------------------
 
+## image stuff
 
-image:
+image_build:
 	docker build -t ${IMAGE_NAME}:${IMAGE_VERSION} .
+
+image_push:
+	docker push ${IMAGE_NAME}:${IMAGE_VERSION}

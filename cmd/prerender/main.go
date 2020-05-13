@@ -36,7 +36,7 @@ func main() {
 	}
 
 	timeStart := time.Now()
-	maxWorkers := runtime.GOMAXPROCS(runtime.NumCPU())
+	maxWorkers := runtime.GOMAXPROCS(runtime.NumCPU()) * cfg.Config.Prerender.ChromeTabsMultiplier
 
 	if err := srv.RenderPages(pages, maxWorkers); err != nil {
 		log.Fatal(err)

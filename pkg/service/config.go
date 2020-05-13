@@ -37,7 +37,7 @@ func (s *service) PrepareRenderReport(pages []*models.PageData, d time.Duration,
 			status = "x"
 		}
 
-		fmt.Printf("| %04d | %-100s | %s | %d |\n", i, page.FileName, status, page.Attempts)
+		fmt.Printf("| %04d | %s | %d | %s\n", i, status, page.Attempts, page.FileName)
 	}
 
 	format := `TOTAL info:

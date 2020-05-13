@@ -183,18 +183,17 @@ func (s *service) RenderPage(ctx context.Context, page *models.PageData, num int
 		return fmt.Errorf("render page `%s` attempts exceeded", page.URL.String())
 	}
 
-	const logStatusFormat = "| %04d | %-100s | %d | %s |"
-	//log.Printf(logStatusFormat, num, page.URL.Path, "o")
+	const logStatusFormat = "| %04d | %s | %d | %s"
 
 	err := s.GetPageBody(ctx, page)
 	if err != nil {
-		log.Printf(logStatusFormat, num, page.URL.Path, page.Attempts, "x")
+		log.Printf(logStatusFormat, num, "x", page.Attempts, page.URL.Path)
 
 		// next attempt
 		return s.RenderPage(ctx, page, num)
 	}
 
-	log.Printf(logStatusFormat, num, page.URL.Path, page.Attempts, "v")
+	log.Printf(logStatusFormat, num, "v", page.Attempts, page.URL.Path)
 
 	return err
 }

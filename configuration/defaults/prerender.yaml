@@ -1,5 +1,6 @@
 defaults: # stage name
   prerender:
+    chrome_tabs_multiplier: 1 # amount of concurrent tabs = numprocs*chrome_tabs_multiplier
     lookup: #
       base_url: "" # target site base url
       type: sitemaps # sitemaps, urls, all
