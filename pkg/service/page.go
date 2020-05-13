@@ -102,6 +102,7 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 		chromedp.UserDataDir("./cache"),
 		chromedp.Flag("new-window", false),
 		//chromedp.Flag("headless", false),
+		chromedp.UserAgent(s.cfg.UserAgent),
 	}...)
 
 	allocCtx, allocCancel := chromedp.NewExecAllocator(ctx, opts...)

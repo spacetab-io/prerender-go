@@ -71,12 +71,13 @@ type viewportConfig struct {
 }
 
 type PrerenderConfig struct {
-	ChromeTabsMultiplier int            `yaml:"chrome_tabs_multiplier"`
-	Lookup               lookupConfig   `yaml:"lookup"`
-	WaitFor              string         `yaml:"wait_for"`
-	ConsoleString        string         `yaml:"console_string"`
-	Element              ElementConfig  `yaml:"element"`
-	Viewport             viewportConfig `yaml:"viewport"`
+	UserAgent       string         `yaml:"user_agent"`
+	ConcurrentLimit int            `yaml:"concurrent_limit"`
+	Lookup          lookupConfig   `yaml:"lookup"`
+	WaitFor         string         `yaml:"wait_for"`
+	ConsoleString   string         `yaml:"console_string"`
+	Element         ElementConfig  `yaml:"element"`
+	Viewport        viewportConfig `yaml:"viewport"`
 }
 
 func (ec ElementConfig) GetWaitElement() string {
@@ -89,6 +90,7 @@ func (ec ElementConfig) GetWaitElement() string {
 	if ec.Class != "" && ec.ID == "" {
 		elem = "." + ec.Class
 	}
+
 	return elem
 }
 

@@ -36,7 +36,7 @@ func main() {
 	}
 
 	timeStart := time.Now()
-	maxWorkers := runtime.GOMAXPROCS(runtime.NumCPU()) * cfg.Config.Prerender.ChromeTabsMultiplier
+	maxWorkers := countMaxWorkers()
 
 	if err := srv.RenderPages(pages, maxWorkers); err != nil {
 		log.Fatal(err)
@@ -45,4 +45,19 @@ func main() {
 	timeEnd := time.Now()
 
 	srv.PrepareRenderReport(pages, timeEnd.Sub(timeStart), maxWorkers)
+}
+
+func countMaxWorkers() int {
+	numprocs := runtime.GOMAXPROCS(runtime.NumCPU())
+	maxWorkers := 2 * numprocs // nolint:gomnd
+
+	if cfg.Config.Prerender.ConcurrentLimit == 0 {
+		return numprocs
+	}
+
+	if cfg.Config.Prerender.ConcurrentLimit > maxWorkers {
+		return maxWorkers
+	}
+
+	return cfg.Config.Prerender.ConcurrentLimit
 }
