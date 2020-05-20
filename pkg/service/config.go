@@ -65,5 +65,4 @@ type Service interface {
 
 type Repository interface {
 	SaveData(pd *models.PageData) error
-	GzipFile() bool
 }

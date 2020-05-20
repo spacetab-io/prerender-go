@@ -4,7 +4,6 @@ defaults:
     local:
       storage_path: "./.pages"
     s3:
-      gzip_file: false
       bucket: ""
       bucket_folder: "/"
       region: "eu-central-1"

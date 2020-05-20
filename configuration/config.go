@@ -27,7 +27,6 @@ type S3Config struct {
 	Region       string `yaml:"region"`
 	Bucket       string `yaml:"bucket"`
 	BucketFolder string `yaml:"bucket_folder"`
-	GzipFile     bool   `yaml:"gzip_file"`
 	AccessKeyID  string `yaml:"access_key_id"`
 	SecretKey    string `yaml:"secret_key"`
 	CDNUrl       string `yaml:"cdn_url"`
@@ -48,10 +47,11 @@ type ElementConfig struct {
 }
 
 type lookupConfig struct {
-	Type        string   `yaml:"type"`
-	SitemapURLs []string `yaml:"sitemaps"`
-	PageURLs    []string `yaml:"urls"`
-	BaseURL     string   `yaml:"base_url"`
+	Type         string   `yaml:"type"`
+	SitemapURLs  []string `yaml:"sitemaps"`
+	PageURLs     []string `yaml:"urls"`
+	BaseURL      string   `yaml:"base_url"`
+	ParamsToSave []string `yaml:"get_params_to_save"`
 }
 
 func (c lookupConfig) GetSourceURL() string {

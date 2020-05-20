@@ -18,10 +18,6 @@ func NewStorage(folderPath string) storage { //nolint:golint
 	return storage{folderPath}
 }
 
-func (s storage) GzipFile() bool {
-	return false
-}
-
 func (s storage) SaveData(pd *models.PageData) error {
 	if pd == nil {
 		return errors.New("nil page data")

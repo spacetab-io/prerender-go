@@ -34,10 +34,6 @@ func NewStorage(cfg cfg.S3Config) storage { //nolint:golint
 	return *s
 }
 
-func (s storage) GzipFile() bool {
-	return s.cfg.GzipFile
-}
-
 func (s storage) SaveData(pd *models.PageData) error {
 	// Upload the file to S3.
 	_, err := s.u.Upload(&s3manager.UploadInput{

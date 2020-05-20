@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/yterajima/go-sitemap"
@@ -19,8 +20,20 @@ func (s *service) PreparePages(links []string) ([]*models.PageData, error) {
 			return nil, fmt.Errorf("parse link url error: %v", err)
 		}
 
+		query := uri.Query()
+		queryParams := make(url.Values)
+
+		for _, key := range s.cfg.Lookup.ParamsToSave {
+			val := query.Get(key)
+			if val != "" {
+				queryParams.Add(key, val)
+			}
+		}
+
+		uri.RawQuery = queryParams.Encode()
+
 		page := &models.PageData{URL: uri, Attempts: 0}
-		page.MakeFileName(s.r.GzipFile())
+		page.MakeFileName()
 		pages = append(pages, page)
 	}
 

@@ -188,13 +188,13 @@ func (s *service) RenderPage(ctx context.Context, page *models.PageData, num int
 
 	err := s.GetPageBody(ctx, page)
 	if err != nil {
-		log.Printf(logStatusFormat, num, "x", page.Attempts, page.URL.Path)
+		log.Printf(logStatusFormat, num, "x", page.Attempts, page.URL.String())
 
 		// next attempt
 		return s.RenderPage(ctx, page, num)
 	}
 
-	log.Printf(logStatusFormat, num, "v", page.Attempts, page.URL.Path)
+	log.Printf(logStatusFormat, num, "v", page.Attempts, page.URL.String())
 
 	return err
 }
