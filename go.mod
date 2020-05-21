@@ -9,6 +9,7 @@ require (
 	github.com/gobwas/ws v1.0.3 // indirect
 	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/spacetab-io/configuration-go v1.0.4
+	github.com/stretchr/testify v1.5.1
 	github.com/yterajima/go-sitemap v0.2.2
 	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
 	golang.org/x/sync v0.0.0-20200317015054-43a5402ce75a

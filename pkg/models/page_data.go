@@ -25,7 +25,7 @@ func (d *PageData) MakeFileName() {
 
 	q := ""
 	if d.URL.RawQuery != "" {
-		q += "-" + d.URL.RawQuery
+		q += "-" + strings.ReplaceAll(d.URL.RawQuery, "&", "-")
 	}
 
 	d.FileName = page + q

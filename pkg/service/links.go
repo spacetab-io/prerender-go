@@ -3,12 +3,12 @@ package service
 import (
 	"errors"
 	"fmt"
-	"net/url"
 	"strings"
 
 	"github.com/yterajima/go-sitemap"
 
 	"github.com/spacetab-io/prerender-go/pkg/models"
+	"github.com/spacetab-io/prerender-go/url"
 )
 
 func (s *service) PreparePages(links []string) ([]*models.PageData, error) {
@@ -20,17 +20,7 @@ func (s *service) PreparePages(links []string) ([]*models.PageData, error) {
 			return nil, fmt.Errorf("parse link url error: %v", err)
 		}
 
-		query := uri.Query()
-		queryParams := make(url.Values)
-
-		for _, key := range s.cfg.Lookup.ParamsToSave {
-			val := query.Get(key)
-			if val != "" {
-				queryParams.Add(key, val)
-			}
-		}
-
-		uri.RawQuery = queryParams.Encode()
+		url.PrepareSortedQueryParams(uri, s.cfg.Lookup.ParamsToSave)
 
 		page := &models.PageData{URL: uri, Attempts: 0}
 		page.MakeFileName()
