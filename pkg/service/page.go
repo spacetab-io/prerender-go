@@ -114,7 +114,7 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 	opts := append(chromedp.DefaultExecAllocatorOptions[0:], []chromedp.ExecAllocatorOption{
 		chromedp.UserDataDir("./cache"),
 		chromedp.Flag("new-window", false),
-		chromedp.Flag("headless", false),
+		//chromedp.Flag("headless", false),
 		chromedp.UserAgent(s.cfg.UserAgent),
 	}...)
 
