@@ -1,5 +1,5 @@
 IMAGE_NAME = spacetabio/prerender-go
-IMAGE_VERSION = 0.1.5
+IMAGE_VERSION = 0.1.6
 
 deps:
 	go mod vendor

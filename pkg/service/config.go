@@ -60,6 +60,10 @@ type Service interface {
 	RenderPages(pages []*models.PageData, maxWorkers int) error
 	RenderPage(ctx context.Context, page *models.PageData, num int) error
 
+	renderBodyWithElementTrigger(ctx context.Context, p *models.PageData) (string, error)
+	renderBodyWithTimeTrigger(ctx context.Context, p *models.PageData) (string, error)
+	renderBodyWithConsoleTrigger(ctx context.Context, p *models.PageData) (string, error)
+
 	PrepareRenderReport(pages []*models.PageData, d time.Duration, procs int)
 }
 

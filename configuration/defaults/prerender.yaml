@@ -1,6 +1,7 @@
 defaults: # stage name
   prerender:
     user_agent: prerender-go-bot
+    file_postfix: null
     concurrent_limit: null # null|0 = numprocs, maximum = numprocs*2
     lookup: #
       base_url: "" # target site base url
@@ -8,7 +9,7 @@ defaults: # stage name
       sitemaps: [] # sitemap urls
       urls: [] # additional urls to parse
       get_params_to_save: [] # get params to preserve in file name
-    wait_for: console # console, element - page ready lookup strategy configuration
+    wait_for: time # console, element, time - page ready lookup strategy configuration
     console_string: "" # string in console that fired when DOM loading is finished and ready to read
     element:
       type: "div"
@@ -17,6 +18,7 @@ defaults: # stage name
       attribute:
         name: ""
         value: ""
+    sleep_time: 3 # sleep time in sec
     viewport:
       width: 1680
       height: 10000

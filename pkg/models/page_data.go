@@ -15,7 +15,7 @@ type PageData struct {
 	SuccessRender bool
 }
 
-func (d *PageData) MakeFileName() {
+func (d *PageData) MakeFileName(postfix string) {
 	page := d.URL.Path
 	if page == "/" {
 		page += "index"
@@ -23,10 +23,16 @@ func (d *PageData) MakeFileName() {
 
 	page = strings.Trim(page, "/")
 
-	q := ""
+	fileNameElems := make([]string, 0)
+
+	fileNameElems = append(fileNameElems, page)
 	if d.URL.RawQuery != "" {
-		q += "-" + strings.ReplaceAll(d.URL.RawQuery, "&", "-")
+		fileNameElems = append(fileNameElems, strings.ReplaceAll(d.URL.RawQuery, "&", "-"))
 	}
 
-	d.FileName = page + q
+	if postfix != "" {
+		fileNameElems = append(fileNameElems, postfix)
+	}
+
+	d.FileName = strings.Join(fileNameElems, "-")
 }

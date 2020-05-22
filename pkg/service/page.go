@@ -29,10 +29,12 @@ func (s service) GetPageBody(ctx context.Context, p *models.PageData) (err error
 	var body string
 
 	switch s.cfg.WaitFor {
-	case "console":
+	case models.WaitForConsole:
 		body, err = s.renderBodyWithConsoleTrigger(newTabCtx, p)
-	case "element":
+	case models.WaitForElement:
 		body, err = s.renderBodyWithElementTrigger(newTabCtx, p)
+	case models.WaitForTime:
+		body, err = s.renderBodyWithTimeTrigger(newTabCtx, p)
 	default:
 		err = errors.New("don't know what to wait")
 	}
@@ -55,6 +57,17 @@ func (s service) renderBodyWithElementTrigger(ctx context.Context, p *models.Pag
 		emulation.SetDeviceMetricsOverride(s.cfg.Viewport.Width, s.cfg.Viewport.Height, 1.0, false),
 		chromedp.WaitVisible(s.cfg.Element.GetWaitElement()),
 		chromedp.WaitVisible(s.cfg.Element.GetWaitElementAttr("ready")),
+		chromedp.OuterHTML("html", &body),
+	)
+
+	return body, err
+}
+func (s service) renderBodyWithTimeTrigger(ctx context.Context, p *models.PageData) (string, error) {
+	var body string
+	err := chromedp.Run(ctx,
+		chromedp.Navigate(p.URL.String()),
+		emulation.SetDeviceMetricsOverride(s.cfg.Viewport.Width, s.cfg.Viewport.Height, 1.0, false),
+		chromedp.Sleep(s.cfg.SleepTime*time.Second),
 		chromedp.OuterHTML("html", &body),
 	)
 
@@ -101,7 +114,7 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 	opts := append(chromedp.DefaultExecAllocatorOptions[0:], []chromedp.ExecAllocatorOption{
 		chromedp.UserDataDir("./cache"),
 		chromedp.Flag("new-window", false),
-		//chromedp.Flag("headless", false),
+		chromedp.Flag("headless", false),
 		chromedp.UserAgent(s.cfg.UserAgent),
 	}...)
 

@@ -23,13 +23,15 @@ func main() {
 
 	srv := service.NewService(st, cfg.Config.Prerender)
 
+	log.Printf("lookup strategy: %s\n", cfg.Config.Prerender.Lookup.Type)
+
 	links, err := srv.GetLinksForRender()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	log.Printf("links counts %d\n", len(links))
-
+	log.Printf("links counts: %d\n", len(links))
+	log.Printf("render wait strategy: %s\n", cfg.Config.Prerender.WaitFor)
 	pages, err := srv.PreparePages(links)
 	if err != nil {
 		log.Fatal(err)

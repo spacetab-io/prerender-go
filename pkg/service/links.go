@@ -23,7 +23,7 @@ func (s *service) PreparePages(links []string) ([]*models.PageData, error) {
 		url.PrepareSortedQueryParams(uri, s.cfg.Lookup.ParamsToSave)
 
 		page := &models.PageData{URL: uri, Attempts: 0}
-		page.MakeFileName()
+		page.MakeFileName(s.cfg.FilePostfix)
 		pages = append(pages, page)
 	}
 

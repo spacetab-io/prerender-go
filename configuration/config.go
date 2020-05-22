@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	config "github.com/spacetab-io/configuration-go"
 	"gopkg.in/yaml.v2"
@@ -72,10 +73,12 @@ type viewportConfig struct {
 
 type PrerenderConfig struct {
 	UserAgent       string         `yaml:"user_agent"`
+	FilePostfix     string         `yaml:"file_postfix"`
 	ConcurrentLimit int            `yaml:"concurrent_limit"`
 	Lookup          lookupConfig   `yaml:"lookup"`
 	WaitFor         string         `yaml:"wait_for"`
 	ConsoleString   string         `yaml:"console_string"`
+	SleepTime       time.Duration  `yaml:"sleep_time"`
 	Element         ElementConfig  `yaml:"element"`
 	Viewport        viewportConfig `yaml:"viewport"`
 }
