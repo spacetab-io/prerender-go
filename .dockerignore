@@ -5,3 +5,4 @@ bin
 .golangci.yml
 c.out
 coverage.html
+.pages

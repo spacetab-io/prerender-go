@@ -172,10 +172,6 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 }
 
 func parseURI(uri string) (*url.URL, error) {
-	if strings.Contains(uri, "localhost:8081") {
-		uri = strings.ReplaceAll(uri, "localhost:8081", "web.dev.teaworkshop.ru")
-	}
-
 	if strings.Contains(uri, "?") {
 		uri += "&"
 	} else {
