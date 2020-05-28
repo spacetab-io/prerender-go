@@ -9,6 +9,9 @@ FROM alpeware/chrome-headless-trunk
 
 WORKDIR /app
 
+RUN apk add --update curl \
+ && rm -rf /var/cache/apk/*
+
 COPY --from=build-env /app/bin/*                  /app/bin/
 COPY --from=build-env /app/Makefile               /app/
 COPY --from=build-env /app/configuration/defaults /app/configuration/defaults
