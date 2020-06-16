@@ -9,45 +9,81 @@ import (
 	"github.com/spacetab-io/prerender-go/pkg/models"
 )
 
-func NewService(r Repository, prerenderConfig cfg.PrerenderConfig) Service {
-	return &service{r, prerenderConfig}
+func NewService(r Repository, prerenderConfig cfg.PrerenderConfig, storageConfig cfg.StorageConfig) Service {
+	return &service{r, prerenderConfig, storageConfig}
 }
 
 type service struct {
-	r   Repository
-	cfg cfg.PrerenderConfig
+	r               Repository
+	prerenderConfig cfg.PrerenderConfig
+	storageConfig   cfg.StorageConfig
 }
 
 func (s *service) PrepareRenderReport(pages []*models.PageData, d time.Duration, procs int) {
 	var (
-		succeed int
-		failed  int
+		renderSucceed  int
+		renderFailed   int
+		storingSucceed int
+		storingFailed  int
+	)
+
+	fmt.Print(`
+       +-----------------+
+       |     status      | 
++------+--------+--------+-------+----------
+|  nn  | render | store  | tries | page path
++------+--------+--------+-------+----------
+`)
+	const (
+		statusSuccess = "success"
+		statusError   = "error  "
 	)
 
 	for i, page := range pages {
-		var status string
+		var renderStatus, storingStatus string
 
 		if page.SuccessRender {
-			succeed++
-
-			status = "v"
+			renderSucceed++
+			renderStatus = statusSuccess
 		} else {
-			failed++
-
-			status = "x"
+			renderFailed++
+			renderStatus = statusError
 		}
 
-		fmt.Printf("| %04d | %s | %d | %s\n", i, status, page.Attempts, page.FileName)
+		if page.SuccessStoring {
+			storingSucceed++
+			storingStatus = statusSuccess
+		} else {
+			storingFailed++
+			storingStatus = statusError
+		}
+
+		fmt.Printf("| %04d | %s | %s | %d     | %s\n", i, renderStatus, storingStatus, page.Attempts, page.FileName)
 	}
 
 	format := `TOTAL info:
+ - static URI: %s
  - links: %d
- - success: %d
- - failed: %d
+ - render success: %d
+ - render failed: %d
+ - storing success: %d
+ - storing failed: %d
  - concurrent: %d
  - duration: %s
 `
-	fmt.Printf(format, len(pages), succeed, failed, procs, d.String())
+	fmt.Printf(format,
+		getStaticURI(s.storageConfig), len(pages), renderSucceed, renderFailed, storingSucceed, storingFailed, procs, d.String())
+}
+
+func getStaticURI(config cfg.StorageConfig) string {
+	switch config.Type {
+	case "local":
+		return config.Local.StoragePath
+	case "s3":
+		return config.S3.CDNUrl + config.S3.BucketFolder
+	}
+
+	return "storage uri cannot be defined"
 }
 
 type Service interface {

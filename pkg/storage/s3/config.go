@@ -46,8 +46,5 @@ func (s storage) SaveData(pd *models.PageData) error {
 		return fmt.Errorf("failed to upload file, %v", err)
 	}
 
-	// clear body to release memory usage
-	pd.Body = nil
-
 	return nil
 }

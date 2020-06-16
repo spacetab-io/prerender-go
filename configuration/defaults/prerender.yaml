@@ -4,6 +4,7 @@ defaults: # stage name
     file_postfix: null
     concurrent_limit: null # null|0 = numprocs, maximum = numprocs*2
     lookup: #
+      headless: false
       base_url: "" # target site base url
       type: sitemaps # sitemaps, urls, all
       sitemaps: [] # sitemap urls

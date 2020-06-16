@@ -6,13 +6,14 @@ import (
 )
 
 type PageData struct {
-	URL           *url.URL
-	Status        int
-	ContentLength int
-	Body          []byte
-	FileName      string
-	Attempts      int
-	SuccessRender bool
+	URL            *url.URL
+	Status         int
+	ContentLength  int
+	Body           []byte
+	FileName       string
+	Attempts       int
+	SuccessRender  bool
+	SuccessStoring bool
 }
 
 func (d *PageData) MakeFileName(postfix string) {

@@ -5,9 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/url"
-	"strings"
-	"sync"
+	//"sync"
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
@@ -28,7 +26,7 @@ func (s service) GetPageBody(ctx context.Context, p *models.PageData) (err error
 
 	var body string
 
-	switch s.cfg.WaitFor {
+	switch s.prerenderConfig.WaitFor {
 	case models.WaitForConsole:
 		body, err = s.renderBodyWithConsoleTrigger(newTabCtx, p)
 	case models.WaitForElement:
@@ -54,9 +52,9 @@ func (s service) renderBodyWithElementTrigger(ctx context.Context, p *models.Pag
 	var body string
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(p.URL.String()),
-		emulation.SetDeviceMetricsOverride(s.cfg.Viewport.Width, s.cfg.Viewport.Height, 1.0, false),
-		chromedp.WaitVisible(s.cfg.Element.GetWaitElement()),
-		chromedp.WaitVisible(s.cfg.Element.GetWaitElementAttr("ready")),
+		emulation.SetDeviceMetricsOverride(s.prerenderConfig.Viewport.Width, s.prerenderConfig.Viewport.Height, 1.0, false),
+		chromedp.WaitVisible(s.prerenderConfig.Element.GetWaitElement()),
+		chromedp.WaitVisible(s.prerenderConfig.Element.GetWaitElementAttr("ready")),
 		chromedp.OuterHTML("html", &body),
 	)
 
@@ -66,8 +64,8 @@ func (s service) renderBodyWithTimeTrigger(ctx context.Context, p *models.PageDa
 	var body string
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(p.URL.String()),
-		emulation.SetDeviceMetricsOverride(s.cfg.Viewport.Width, s.cfg.Viewport.Height, 1.0, false),
-		chromedp.Sleep(s.cfg.SleepTime*time.Second),
+		emulation.SetDeviceMetricsOverride(s.prerenderConfig.Viewport.Width, s.prerenderConfig.Viewport.Height, 1.0, false),
+		chromedp.Sleep(s.prerenderConfig.SleepTime*time.Second),
 		chromedp.OuterHTML("html", &body),
 	)
 
@@ -82,7 +80,7 @@ func (s service) renderBodyWithConsoleTrigger(ctx context.Context, p *models.Pag
 		case *chromeRuntime.EventConsoleAPICalled:
 			if ev.Type == chromeRuntime.APITypeLog {
 				for _, arg := range ev.Args {
-					if string(arg.Value) == fmt.Sprintf(`"%s"`, s.cfg.ConsoleString) {
+					if string(arg.Value) == fmt.Sprintf(`"%s"`, s.prerenderConfig.ConsoleString) {
 						gotResult <- true
 					}
 				}
@@ -94,7 +92,7 @@ func (s service) renderBodyWithConsoleTrigger(ctx context.Context, p *models.Pag
 	var body string
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(p.URL.String()),
-		emulation.SetDeviceMetricsOverride(s.cfg.Viewport.Width, s.cfg.Viewport.Height, 1.0, false),
+		emulation.SetDeviceMetricsOverride(s.prerenderConfig.Viewport.Width, s.prerenderConfig.Viewport.Height, 1.0, false),
 		chromedp.WaitReady("title", chromedp.After(func(ctx context.Context, node ...*cdp.Node) error {
 			<-gotResult
 			return nil
@@ -114,8 +112,8 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 	opts := append(chromedp.DefaultExecAllocatorOptions[0:], []chromedp.ExecAllocatorOption{
 		chromedp.UserDataDir("./cache"),
 		chromedp.Flag("new-window", false),
-		//chromedp.Flag("headless", false),
-		chromedp.UserAgent(s.cfg.UserAgent),
+		chromedp.Flag("headless", s.prerenderConfig.Lookup.Headless),
+		chromedp.UserAgent(s.prerenderConfig.UserAgent),
 	}...)
 
 	allocCtx, allocCancel := chromedp.NewExecAllocator(ctx, opts...)
@@ -131,8 +129,6 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 
 	sem := semaphore.NewWeighted(int64(maxWorkers))
 
-	var wg sync.WaitGroup
-
 	for i, page := range pages {
 		// When maxWorkers goroutines are in flight, Acquire blocks until one of the
 		// workers finishes.
@@ -141,46 +137,31 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 			break
 		}
 
-		page := page
+		p := page
 		num := i
 
 		go func() {
 			defer sem.Release(1)
 
-			if err := s.RenderPage(actxt, page, num); err != nil {
+			if err := s.RenderPage(actxt, p, num); err != nil {
 				log.Println(err)
 				return
 			}
 
-			page.SuccessRender = true
+			p.SuccessRender = true
 
-			wg.Add(1)
+			if err := s.r.SaveData(p); err != nil {
+				log.Printf("save data error: %v", err)
+			} else {
+				p.SuccessStoring = true
+			}
 
-			go func() {
-				defer wg.Done()
-
-				if err := s.r.SaveData(page); err != nil {
-					log.Fatal(fmt.Errorf("save data error: %v", err))
-				}
-			}()
+			// clear body to release memory usage
+			p.Body = nil
 		}()
 	}
 
-	wg.Wait()
-
 	return sem.Acquire(ctx, int64(maxWorkers))
-}
-
-func parseURI(uri string) (*url.URL, error) {
-	if strings.Contains(uri, "?") {
-		uri += "&"
-	} else {
-		uri += "?"
-	}
-
-	uri += "prerender=true"
-
-	return url.Parse(uri)
 }
 
 func (s *service) RenderPage(ctx context.Context, page *models.PageData, num int) error {

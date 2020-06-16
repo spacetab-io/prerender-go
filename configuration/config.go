@@ -48,6 +48,7 @@ type ElementConfig struct {
 }
 
 type lookupConfig struct {
+	Headless     bool     `yaml:"headless"`
 	Type         string   `yaml:"type"`
 	SitemapURLs  []string `yaml:"sitemaps"`
 	PageURLs     []string `yaml:"urls"`

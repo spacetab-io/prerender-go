@@ -21,7 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	srv := service.NewService(st, cfg.Config.Prerender)
+	srv := service.NewService(st, cfg.Config.Prerender, cfg.Config.Storage)
 
 	log.Printf("lookup strategy: %s\n", cfg.Config.Prerender.Lookup.Type)
 
