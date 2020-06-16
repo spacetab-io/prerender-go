@@ -4,9 +4,9 @@ defaults: # stage name
     file_postfix: null
     concurrent_limit: null # null|0 = numprocs, maximum = numprocs*2
     lookup: #
-      headless: false
+      headless: true # render page in headless mode
       base_url: "" # target site base url
-      type: sitemaps # sitemaps, urls, all
+      type: all # sitemaps, urls, all
       sitemaps: [] # sitemap urls
       urls: [] # additional urls to parse
       get_params_to_save: [] # get params to preserve in file name

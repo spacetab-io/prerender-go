@@ -2,7 +2,7 @@ defaults:
   service:
     name: "SPA prerender"
     about: "Приложение для рендера SPA приложений как html странички"
-    version: "0.0.1"
+    version: "0.3.0"
     docs: "---"
     contacts: "ask@spacetab.io"
     copyright: "spacetab.io © 2020"
