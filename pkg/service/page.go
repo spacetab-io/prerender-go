@@ -53,8 +53,8 @@ func (s service) renderBodyWithElementTrigger(ctx context.Context, p *models.Pag
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(p.URL.String()),
 		emulation.SetDeviceMetricsOverride(s.prerenderConfig.Viewport.Width, s.prerenderConfig.Viewport.Height, 1.0, false),
-		chromedp.WaitVisible(s.prerenderConfig.Element.GetWaitElement()),
-		chromedp.WaitVisible(s.prerenderConfig.Element.GetWaitElementAttr("ready")),
+		chromedp.WaitReady(s.prerenderConfig.Element.GetWaitElement()),
+		chromedp.WaitReady(s.prerenderConfig.Element.GetWaitElementAttr("ready")),
 		chromedp.OuterHTML("html", &body),
 	)
 
