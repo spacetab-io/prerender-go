@@ -14,8 +14,8 @@ type storage struct {
 	path string
 }
 
-func NewStorage(folderPath string) storage { //nolint:golint
-	return storage{folderPath}
+func NewStorage(folderPath string) *storage { //nolint:golint
+	return &storage{folderPath}
 }
 
 func (s storage) SaveData(pd *models.PageData) error {

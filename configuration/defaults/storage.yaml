@@ -4,9 +4,17 @@ defaults:
     local:
       storage_path: "./.pages"
     s3:
-      bucket: ""
-      bucket_folder: "/"
-      region: "eu-central-1"
-      access_key_id: ""
-      secret_key: ""
-      cdn_url: ""
+      endpoint:
+        endpointUrl: ""
+        partitionId: ""
+        signingName: ""
+        signingMethod: v4
+        signingRegion: eu-central-1
+      access:
+        accessKeyId: ""
+        secretKey: ""
+        token: ""
+      bucket:
+        name: ""
+        folder: "/"
+        cdnUrl: ""

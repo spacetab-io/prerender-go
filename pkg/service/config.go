@@ -28,11 +28,11 @@ func (s *service) PrepareRenderReport(pages []*models.PageData, d time.Duration,
 	)
 
 	fmt.Print(`
-       +-----------------+
-       |     status      | 
-+------+--------+--------+-------+----------
-|  nn  | render | store  | tries | page path
-+------+--------+--------+-------+----------
+       +-------------------+
+       |     status        | 
++------+---------+---------+-------+----------
+|  nn  | render  | store   | tries | page path
++------+---------+---------+-------+----------
 `)
 	const (
 		statusSuccess = "success"
@@ -80,7 +80,7 @@ func getStaticURI(config cfg.StorageConfig) string {
 	case "local":
 		return config.Local.StoragePath
 	case "s3":
-		return config.S3.CDNUrl + config.S3.BucketFolder
+		return config.S3.Bucket.CDNUrl + config.S3.Bucket.Folder
 	}
 
 	return "storage uri cannot be defined"

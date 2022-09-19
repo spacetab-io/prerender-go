@@ -1,0 +1,11 @@
+defaults:
+  logs:
+    format: text
+    level: debug
+    isColored: true
+    caller:
+      show: true
+      skip_frames: 1
+    sentry:
+      enable: false
+      dsn: ""

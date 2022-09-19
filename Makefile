@@ -1,23 +1,23 @@
 IMAGE_NAME = spacetabio/prerender-go
-IMAGE_VERSION = 0.3.0
+IMAGE_VERSION = 0.3.1
 
 deps:
 	go mod vendor
 
 build:
-	go build -o ./bin/prerender ./cmd/prerender/main.go
+	go build -o ./bin/prerender .
 .PHONY: build
 
 build_vendor:
-	go build -mod=vendor -o ./bin/prerender ./cmd/prerender/main.go
+	go build -mod=vendor -o ./bin/prerender .
 .PHONY: build_vendor
 
 build_for_docker:
-	GOOS=linux GOARCH=amd64 go build -o ./bin/prerender ./cmd/prerender/main.go
+	GOOS=linux GOARCH=amd64 go build -o ./bin/prerender .
 .PHONY: build_for_docker
 
 build_vendor_for_docker:
-	GOOS=linux GOARCH=amd64 go build -mod=vendor -o ./bin/prerender ./cmd/prerender/main.go
+	GOOS=linux GOARCH=amd64 go build -mod=vendor -o ./bin/prerender .
 .PHONY: build_for_docker
 
 run:
