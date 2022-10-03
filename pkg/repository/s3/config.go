@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -25,7 +26,7 @@ func NewStorage(cfg cfg.S3Config) (*storage, error) { //nolint:golint
 		if service == s3.ServiceID {
 			return aws.Endpoint{
 				PartitionID:       cfg.Endpoint.PartitionID,
-				URL:               cfg.Endpoint.URL,
+				URL:               strings.TrimRight(cfg.Endpoint.URL, "/"),
 				SigningName:       cfg.Endpoint.SigningName,
 				SigningRegion:     cfg.Endpoint.SigningRegion,
 				SigningMethod:     cfg.Endpoint.SigningMethod,
@@ -36,7 +37,6 @@ func NewStorage(cfg cfg.S3Config) (*storage, error) { //nolint:golint
 		return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
 	})
 
-	// Подгружаем конфигрурацию из ~/.aws/*
 	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
 		config.WithEndpointResolverWithOptions(customResolver),
 		config.WithCredentialsProvider(credentials.NewStaticCredentialsProvider(
@@ -55,11 +55,11 @@ func NewStorage(cfg cfg.S3Config) (*storage, error) { //nolint:golint
 	return s, nil
 }
 
-func (s storage) SaveData(pd *models.PageData) error {
+func (s *storage) SaveData(ctx context.Context, pd *models.PageData) error {
 	// Upload the file to S3.
-	_, err := s.client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket:      aws.String(s.cfg.Bucket.Name),
-		Key:         aws.String(s.cfg.Bucket.Folder + pd.FileName),
+	_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(strings.Trim(s.cfg.Bucket.Name, "/")),
+		Key:         aws.String(fmt.Sprintf("%s/%s", strings.Trim(s.cfg.Bucket.Folder, "/"), pd.FileName)),
 		Body:        bytes.NewReader(pd.Body),
 		ContentType: aws.String("text/html; charset=utf-8"),
 	})

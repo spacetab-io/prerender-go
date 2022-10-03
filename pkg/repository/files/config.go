@@ -1,11 +1,13 @@
 package files
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/spacetab-io/prerender-go/pkg/models"
 )
@@ -15,10 +17,10 @@ type storage struct {
 }
 
 func NewStorage(folderPath string) *storage { //nolint:golint
-	return &storage{folderPath}
+	return &storage{path: strings.TrimRight(folderPath, "/")}
 }
 
-func (s storage) SaveData(pd *models.PageData) error {
+func (s storage) SaveData(_ context.Context, pd *models.PageData) error {
 	if pd == nil {
 		return errors.New("nil page data")
 	}

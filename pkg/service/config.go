@@ -104,5 +104,5 @@ type Service interface {
 }
 
 type Repository interface {
-	SaveData(pd *models.PageData) error
+	SaveData(ctx context.Context, pd *models.PageData) error
 }

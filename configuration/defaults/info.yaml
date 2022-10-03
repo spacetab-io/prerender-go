@@ -4,7 +4,7 @@ defaults:
     alias: "prerender"
     name: "SPA prerender"
     about: "Приложение для рендера SPA приложений как html странички"
-    version: "0.4.0"
+    version: "1.0.1"
     docs: "---"
     contacts: "ask@spacetab.io"
     copyright: "SpaceTab © 2022"

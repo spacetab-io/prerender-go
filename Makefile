@@ -1,5 +1,5 @@
 IMAGE_NAME = spacetabio/prerender-go
-IMAGE_VERSION = 0.3.1
+IMAGE_VERSION = v1.0.0
 
 deps:
 	go mod vendor
@@ -84,3 +84,5 @@ image_build:
 
 image_push:
 	docker push ${IMAGE_NAME}:${IMAGE_VERSION}
+
+image: image_build image_push

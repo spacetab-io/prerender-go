@@ -150,7 +150,7 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 
 			p.SuccessRender = true
 
-			if err := s.r.SaveData(p); err != nil {
+			if err := s.r.SaveData(ctx, p); err != nil {
 				log.Printf("save data error: %v", err)
 			} else {
 				p.SuccessStoring = true
