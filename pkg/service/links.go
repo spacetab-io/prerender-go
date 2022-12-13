@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/yterajima/go-sitemap"
 
@@ -100,18 +101,37 @@ func (s *service) GetUrlsFromLinksList() ([]string, error) {
 func (s *service) GetUrlsFromSitemaps() ([]string, error) {
 	links := make([]string, 0)
 
-	for _, url := range s.prerenderConfig.Lookup.SitemapURLs {
-		smap, err := sitemap.Get(url, nil)
+	for _, sitemapsURL := range s.prerenderConfig.Lookup.SitemapURLs {
+		smap, err := sitemap.Get(sitemapsURL, nil)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, URL := range smap.URL {
-			if !IsInSlice(links, URL.Loc) {
-				links = append(links, URL.Loc)
+		for _, sitemapURL := range smap.URL {
+			if sitemapURL.LastMod == "" {
+				continue
+
+			}
+
+			lm, err := lastModifiedFrom(sitemapURL.LastMod)
+			if err != nil {
+				return nil, err
+			}
+
+			if s.lastRenderedAt.After(lm) {
+				continue
+			}
+
+			if !IsInSlice(links, sitemapURL.Loc) {
+				links = append(links, sitemapURL.Loc)
 			}
 		}
 	}
 
 	return links, nil
+}
+
+func lastModifiedFrom(lastMod string) (time.Time, error) {
+	// 2021-09-21T07:31:56+00:00
+	return time.Parse(time.RFC3339, lastMod)
 }

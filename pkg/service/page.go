@@ -5,8 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	//"sync"
-	"time"
+	"strings"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/emulation"
@@ -17,14 +16,17 @@ import (
 	"github.com/spacetab-io/prerender-go/pkg/models"
 )
 
-func (s service) GetPageBody(ctx context.Context, p *models.PageData) (err error) {
-	timeoutCtx, cancel := context.WithTimeout(ctx, 30*time.Second) //nolint:gomnd
+func (s service) GetPageBody(ctx context.Context, p *models.PageData) error {
+	timeoutCtx, cancel := context.WithTimeout(ctx, s.prerenderConfig.WaitTimeout)
 	defer cancel()
 
 	newTabCtx, cancelNewTabCtx := chromedp.NewContext(timeoutCtx) // create new tab
 	defer cancelNewTabCtx()
 
-	var body string
+	var (
+		body string
+		err  error
+	)
 
 	switch s.prerenderConfig.WaitFor {
 	case models.WaitForConsole:
@@ -44,6 +46,11 @@ func (s service) GetPageBody(ctx context.Context, p *models.PageData) (err error
 	p.Body = []byte(body)
 	p.ContentLength = len(body)
 	p.Status = 200 //TODO убрать хардкод
+
+	if s.prerenderConfig.Page404Text != "" &&
+		strings.ContainsAny(body, s.prerenderConfig.Page404Text) {
+		p.Status = 404
+	}
 
 	return nil
 }
@@ -65,7 +72,7 @@ func (s service) renderBodyWithTimeTrigger(ctx context.Context, p *models.PageDa
 	err := chromedp.Run(ctx,
 		chromedp.Navigate(p.URL.String()),
 		emulation.SetDeviceMetricsOverride(s.prerenderConfig.Viewport.Width, s.prerenderConfig.Viewport.Height, 1.0, false),
-		chromedp.Sleep(s.prerenderConfig.SleepTime*time.Second),
+		chromedp.Sleep(s.prerenderConfig.SleepTime),
 		chromedp.OuterHTML("html", &body),
 	)
 
@@ -128,6 +135,7 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 	}
 
 	sem := semaphore.NewWeighted(int64(maxWorkers))
+	total := len(pages)
 
 	for i, page := range pages {
 		// When maxWorkers goroutines are in flight, Acquire blocks until one of the
@@ -143,8 +151,14 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 		go func() {
 			defer sem.Release(1)
 
-			if err := s.RenderPage(actxt, p, num); err != nil {
+			if err := s.RenderPage(actxt, p, num, total); err != nil {
 				log.Println(err)
+				return
+			}
+
+			if p.Status != 200 {
+				log.Printf("page http status is not 200. skip!")
+
 				return
 			}
 
@@ -164,27 +178,27 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 	return sem.Acquire(ctx, int64(maxWorkers))
 }
 
-func (s *service) RenderPage(ctx context.Context, page *models.PageData, num int) error {
+func (s *service) RenderPage(ctx context.Context, page *models.PageData, num, total int) error {
 	if page == nil {
 		return errors.New("page data is nil")
 	}
 
 	page.Attempts++
-	if page.Attempts == 5 { //nolint:gomnd
+	if page.Attempts == s.prerenderConfig.MaxAttempts {
 		return fmt.Errorf("render page `%s` attempts exceeded", page.URL.String())
 	}
 
-	const logStatusFormat = "| %04d | %s | %d | %s"
+	const logStatusFormat = "| %04d/%04d | %s | %d | %s"
 
 	err := s.GetPageBody(ctx, page)
 	if err != nil {
-		log.Printf(logStatusFormat, num, "x", page.Attempts, page.URL.String())
+		log.Printf(logStatusFormat, num, total, "x", page.Attempts, fmt.Sprintf("%s\n%s", page.URL.String(), err.Error()))
 
 		// next attempt
-		return s.RenderPage(ctx, page, num)
+		return s.RenderPage(ctx, page, num, total)
 	}
 
-	log.Printf(logStatusFormat, num, "v", page.Attempts, page.URL.String())
+	log.Printf(logStatusFormat, num, total, "v", page.Attempts, page.URL.String())
 
 	return err
 }

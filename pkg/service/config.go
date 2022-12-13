@@ -10,10 +10,18 @@ import (
 )
 
 func NewService(r Repository, prerenderConfig cfg.PrerenderConfig, storageConfig cfg.StorageConfig) Service {
-	return &service{r, prerenderConfig, storageConfig}
+	lr := time.Now().Add(-prerenderConfig.RenderPeriod)
+
+	return &service{
+		lastRenderedAt:  &lr,
+		r:               r,
+		prerenderConfig: prerenderConfig,
+		storageConfig:   storageConfig,
+	}
 }
 
 type service struct {
+	lastRenderedAt  *time.Time
 	r               Repository
 	prerenderConfig cfg.PrerenderConfig
 	storageConfig   cfg.StorageConfig
@@ -94,7 +102,7 @@ type Service interface {
 
 	GetPageBody(ctx context.Context, p *models.PageData) error
 	RenderPages(pages []*models.PageData, maxWorkers int) error
-	RenderPage(ctx context.Context, page *models.PageData, num int) error
+	RenderPage(ctx context.Context, page *models.PageData, num int, total int) error
 
 	renderBodyWithElementTrigger(ctx context.Context, p *models.PageData) (string, error)
 	renderBodyWithTimeTrigger(ctx context.Context, p *models.PageData) (string, error)

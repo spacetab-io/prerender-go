@@ -50,9 +50,13 @@ type PrerenderConfig struct {
 	Lookup          lookupConfig   `yaml:"lookup"`
 	WaitFor         string         `yaml:"wait_for"`
 	ConsoleString   string         `yaml:"console_string"`
+	MaxAttempts     int            `yaml:"max_attempts"`
 	SleepTime       time.Duration  `yaml:"sleep_time"`
+	WaitTimeout     time.Duration  `yaml:"wait_timeout"`
+	RenderPeriod    time.Duration  `yaml:"render_period"`
 	Element         ElementConfig  `yaml:"element"`
 	Viewport        viewportConfig `yaml:"viewport"`
+	Page404Text     string         `yaml:"page_404_text"`
 }
 
 func (ec ElementConfig) GetWaitElement() string {

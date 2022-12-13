@@ -9,7 +9,7 @@ defaults: # stage name
       type: all # sitemaps, urls, all
       sitemaps: [] # sitemap urls
       urls: [] # additional urls to parse
-      get_params_to_save: [] # get params to preserve in file name
+      get_params_to_save: [ ] # get params to preserve in file name
     wait_for: time # console, element, time - page ready lookup strategy configuration
     console_string: "" # string in console that fired when DOM loading is finished and ready to read
     element:
@@ -19,7 +19,11 @@ defaults: # stage name
       attribute:
         name: ""
         value: ""
-    sleep_time: 3 # sleep time in sec
+    max_attempts: 5
+    sleep_time: 3s
+    wait_timeout: 30s
+    render_period: 7h
     viewport:
       width: 1680
       height: 10000
+    page_404_text: "Такой страницы у нас нет"

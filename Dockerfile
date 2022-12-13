@@ -1,4 +1,4 @@
-FROM golang:1.14-buster as build-env
+FROM golang:1.17-buster as build-env
 
 WORKDIR /app
 COPY . /app
