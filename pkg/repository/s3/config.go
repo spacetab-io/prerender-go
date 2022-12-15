@@ -3,6 +3,7 @@ package s3
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -10,17 +11,19 @@ import (
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	cfg "github.com/spacetab-io/prerender-go/configuration"
+	"github.com/spacetab-io/prerender-go/configuration"
 	"github.com/spacetab-io/prerender-go/pkg/models"
 )
 
 type storage struct {
 	client *s3.Client
-	cfg    cfg.S3Config
+	cfg    configuration.S3Config
 }
 
-func NewStorage(cfg cfg.S3Config) (*storage, error) { //nolint:golint
-	s := new(storage)
+var ErrUnknownEndpointRequest = errors.New("unknown endpoint requested")
+
+//nolint:revive // we need it here
+func NewStorage(cfg configuration.S3Config) (*storage, error) {
 	// Создаем кастомный обработчик эндпоинтов, который для сервиса S3 и региона ru-central1 выдаст корректный URL
 	customResolver := aws.EndpointResolverWithOptionsFunc(func(service, region string, options ...interface{}) (aws.Endpoint, error) {
 		if service == s3.ServiceID {
@@ -34,7 +37,7 @@ func NewStorage(cfg cfg.S3Config) (*storage, error) { //nolint:golint
 			}, nil
 		}
 
-		return aws.Endpoint{}, fmt.Errorf("unknown endpoint requested")
+		return aws.Endpoint{}, ErrUnknownEndpointRequest
 	})
 
 	awsCfg, err := config.LoadDefaultConfig(context.TODO(),
@@ -49,10 +52,7 @@ func NewStorage(cfg cfg.S3Config) (*storage, error) { //nolint:golint
 		return nil, fmt.Errorf("config load error: %w", err)
 	}
 
-	s.client = s3.NewFromConfig(awsCfg)
-	s.cfg = cfg
-
-	return s, nil
+	return &storage{client: s3.NewFromConfig(awsCfg), cfg: cfg}, nil
 }
 
 func (s *storage) SaveData(ctx context.Context, pd *models.PageData) error {
@@ -64,7 +64,7 @@ func (s *storage) SaveData(ctx context.Context, pd *models.PageData) error {
 		ContentType: aws.String("text/html; charset=utf-8"),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to upload file, %v", err)
+		return fmt.Errorf("failed to upload file, %w", err)
 	}
 
 	return nil

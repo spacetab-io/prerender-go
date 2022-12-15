@@ -23,7 +23,7 @@ var Logger, _ = log.Init(
 	os.Stdout,
 )
 
-func Init(cfg contracts.LogsCfgInterface, stage, serviceAlias, serviceVersion string) (err error) {
+func Init(cfg contracts.LogsCfgInterface, stage, serviceAlias, serviceVersion string) error {
 	l, err := log.Init(cfg, stage, serviceAlias, serviceVersion, os.Stdout)
 	if err != nil {
 		return fmt.Errorf("log init error: %w", err)

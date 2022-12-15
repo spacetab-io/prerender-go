@@ -2,18 +2,18 @@ package service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
+	"net/http"
 	"strings"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/cdproto/emulation"
-	chromeRuntime "github.com/chromedp/cdproto/runtime"
+	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
-	"golang.org/x/sync/semaphore"
-
+	"github.com/spacetab-io/prerender-go/pkg/errors"
 	"github.com/spacetab-io/prerender-go/pkg/models"
+	"golang.org/x/sync/semaphore"
 )
 
 func (s service) GetPageBody(ctx context.Context, p *models.PageData) error {
@@ -36,20 +36,19 @@ func (s service) GetPageBody(ctx context.Context, p *models.PageData) error {
 	case models.WaitForTime:
 		body, err = s.renderBodyWithTimeTrigger(newTabCtx, p)
 	default:
-		err = errors.New("don't know what to wait")
+		err = errors.ErrUnknownTrigger
 	}
 
 	if err != nil {
-		return err
+		return fmt.Errorf("get page body error: %w", err)
 	}
 
 	p.Body = []byte(body)
 	p.ContentLength = len(body)
-	p.Status = 200 //TODO убрать хардкод
+	p.Status = http.StatusOK
 
-	if s.prerenderConfig.Page404Text != "" &&
-		strings.ContainsAny(body, s.prerenderConfig.Page404Text) {
-		p.Status = 404
+	if s.prerenderConfig.Page404Text != "" && strings.Contains(body, s.prerenderConfig.Page404Text) {
+		p.Status = http.StatusNotFound
 	}
 
 	return nil
@@ -57,26 +56,31 @@ func (s service) GetPageBody(ctx context.Context, p *models.PageData) error {
 
 func (s service) renderBodyWithElementTrigger(ctx context.Context, p *models.PageData) (string, error) {
 	var body string
-	err := chromedp.Run(ctx,
+	if err := chromedp.Run(ctx,
 		chromedp.Navigate(p.URL.String()),
 		emulation.SetDeviceMetricsOverride(s.prerenderConfig.Viewport.Width, s.prerenderConfig.Viewport.Height, 1.0, false),
 		chromedp.WaitReady(s.prerenderConfig.Element.GetWaitElement()),
 		chromedp.WaitReady(s.prerenderConfig.Element.GetWaitElementAttr("ready")),
 		chromedp.OuterHTML("html", &body),
-	)
+	); err != nil {
+		return "", fmt.Errorf("renderBodyWithElementTrigger error: %w", err)
+	}
 
-	return body, err
+	return body, nil
 }
+
 func (s service) renderBodyWithTimeTrigger(ctx context.Context, p *models.PageData) (string, error) {
 	var body string
-	err := chromedp.Run(ctx,
+	if err := chromedp.Run(ctx,
 		chromedp.Navigate(p.URL.String()),
 		emulation.SetDeviceMetricsOverride(s.prerenderConfig.Viewport.Width, s.prerenderConfig.Viewport.Height, 1.0, false),
 		chromedp.Sleep(s.prerenderConfig.SleepTime),
 		chromedp.OuterHTML("html", &body),
-	)
+	); err != nil {
+		return "", fmt.Errorf("renderBodyWithTimeTrigger error: %w", err)
+	}
 
-	return body, err
+	return body, nil
 }
 
 func (s service) renderBodyWithConsoleTrigger(ctx context.Context, p *models.PageData) (string, error) {
@@ -84,15 +88,15 @@ func (s service) renderBodyWithConsoleTrigger(ctx context.Context, p *models.Pag
 
 	chromedp.ListenTarget(ctx, func(ev interface{}) {
 		switch ev := ev.(type) {
-		case *chromeRuntime.EventConsoleAPICalled:
-			if ev.Type == chromeRuntime.APITypeLog {
+		case *runtime.EventConsoleAPICalled:
+			if ev.Type == runtime.APITypeLog {
 				for _, arg := range ev.Args {
 					if string(arg.Value) == fmt.Sprintf(`"%s"`, s.prerenderConfig.ConsoleString) {
 						gotResult <- true
 					}
 				}
 			}
-		case *chromeRuntime.EventExceptionThrown:
+		case *runtime.EventExceptionThrown:
 		}
 	})
 
@@ -100,20 +104,21 @@ func (s service) renderBodyWithConsoleTrigger(ctx context.Context, p *models.Pag
 	if err := chromedp.Run(ctx,
 		chromedp.Navigate(p.URL.String()),
 		emulation.SetDeviceMetricsOverride(s.prerenderConfig.Viewport.Width, s.prerenderConfig.Viewport.Height, 1.0, false),
-		chromedp.WaitReady("title", chromedp.After(func(ctx context.Context, node ...*cdp.Node) error {
+		chromedp.WaitReady("title", chromedp.After(func(_ context.Context, _ runtime.ExecutionContextID, _ ...*cdp.Node) error {
 			<-gotResult
+
 			return nil
 		})),
 		chromedp.OuterHTML("html", &body),
 	); err != nil {
-		return "", err
+		return "", fmt.Errorf("get body error: %w", err)
 	}
 
 	return body, nil
 }
 
-func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
-	ctx, cancel := context.WithCancel(context.Background())
+func (s *service) RenderPages(ctx context.Context, pages []*models.PageData, maxWorkers int) error {
+	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
 	opts := append(chromedp.DefaultExecAllocatorOptions[0:], []chromedp.ExecAllocatorOption{
@@ -142,21 +147,22 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 		// workers finishes.
 		if err := sem.Acquire(ctx, 1); err != nil {
 			log.Printf("Failed to acquire semaphore: %v", err)
+
 			break
 		}
 
-		p := page
 		num := i
 
-		go func() {
+		go func(p *models.PageData) {
 			defer sem.Release(1)
 
 			if err := s.RenderPage(actxt, p, num, total); err != nil {
 				log.Println(err)
+
 				return
 			}
 
-			if p.Status != 200 {
+			if p.Status != http.StatusOK {
 				log.Printf("page http status is not 200. skip!")
 
 				return
@@ -172,27 +178,30 @@ func (s *service) RenderPages(pages []*models.PageData, maxWorkers int) error {
 
 			// clear body to release memory usage
 			p.Body = nil
-		}()
+		}(page)
 	}
 
-	return sem.Acquire(ctx, int64(maxWorkers))
+	if err := sem.Acquire(ctx, int64(maxWorkers)); err != nil {
+		return fmt.Errorf("semafore acquire error: %w", err)
+	}
+
+	return nil
 }
 
 func (s *service) RenderPage(ctx context.Context, page *models.PageData, num, total int) error {
 	if page == nil {
-		return errors.New("page data is nil")
+		return errors.ErrPageIsNil
 	}
 
 	page.Attempts++
 	if page.Attempts == s.prerenderConfig.MaxAttempts {
-		return fmt.Errorf("render page `%s` attempts exceeded", page.URL.String())
+		return fmt.Errorf("`%s` %w", page.URL.String(), errors.ErrMaxAttemptsExceed)
 	}
 
 	const logStatusFormat = "| %04d/%04d | %s | %d | %s"
 
-	err := s.GetPageBody(ctx, page)
-	if err != nil {
-		log.Printf(logStatusFormat, num, total, "x", page.Attempts, fmt.Sprintf("%s\n%s", page.URL.String(), err.Error()))
+	if err := s.GetPageBody(ctx, page); err != nil {
+		log.Printf(logStatusFormat, num, total, "x", page.Attempts, fmt.Sprintf("%s | %s", page.URL.String(), err.Error()))
 
 		// next attempt
 		return s.RenderPage(ctx, page, num, total)
@@ -200,5 +209,5 @@ func (s *service) RenderPage(ctx context.Context, page *models.PageData, num, to
 
 	log.Printf(logStatusFormat, num, total, "v", page.Attempts, page.URL.String())
 
-	return err
+	return nil
 }

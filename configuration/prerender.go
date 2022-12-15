@@ -1,3 +1,4 @@
+//nolint:tagliatelle // legacy
 package configuration
 
 import (
@@ -27,17 +28,6 @@ type lookupConfig struct {
 	ParamsToSave []string `yaml:"get_params_to_save"`
 }
 
-func (c lookupConfig) GetSourceURL() string {
-	switch c.Type {
-	case models.LookupTypeSitemaps:
-		return strings.Join(c.SitemapURLs, ",")
-	case models.LookupTypeURLs:
-		return strings.Join(c.PageURLs, ", ")
-	}
-
-	return ""
-}
-
 type viewportConfig struct {
 	Width  int64 `yaml:"width"`
 	Height int64 `yaml:"height"`
@@ -59,6 +49,17 @@ type PrerenderConfig struct {
 	Page404Text     string         `yaml:"page_404_text"`
 }
 
+func (c lookupConfig) GetSourceURL() string {
+	switch c.Type {
+	case models.LookupTypeSitemaps:
+		return strings.Join(c.SitemapURLs, ",")
+	case models.LookupTypeURLs:
+		return strings.Join(c.PageURLs, ", ")
+	}
+
+	return ""
+}
+
 func (ec ElementConfig) GetWaitElement() string {
 	elem := ec.Type
 
@@ -76,8 +77,12 @@ func (ec ElementConfig) GetWaitElement() string {
 func (ec ElementConfig) GetWaitElementAttr(attrValue string) string {
 	elem := ec.GetWaitElement()
 
+	if ec.Attribute.Value == "" {
+		ec.Attribute.Value = attrValue
+	}
+
 	if ec.Attribute.Name != "" && ec.Attribute.Value != "" {
-		elem += fmt.Sprintf("[%s=%s]", ec.Attribute.Name, attrValue)
+		elem += fmt.Sprintf("[%s=%s]", ec.Attribute.Name, ec.Attribute.Value)
 	}
 
 	return elem

@@ -2,13 +2,12 @@ package files
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/spacetab-io/prerender-go/pkg/errors"
 	"github.com/spacetab-io/prerender-go/pkg/models"
 )
 
@@ -16,26 +15,28 @@ type storage struct {
 	path string
 }
 
-func NewStorage(folderPath string) *storage { //nolint:golint
+//nolint:revive // we need it here
+func NewStorage(folderPath string) *storage {
 	return &storage{path: strings.TrimRight(folderPath, "/")}
 }
 
+//nolint:gomnd // permissions numbers
 func (s storage) SaveData(_ context.Context, pd *models.PageData) error {
 	if pd == nil {
-		return errors.New("nil page data")
+		return errors.ErrPageIsNil
 	}
 
 	fullPath := s.path + "/" + pd.FileName
 
 	dir := filepath.Dir(fullPath)
 
-	if err := os.MkdirAll(dir, 0755); err != nil {
-		return fmt.Errorf("making dir error: :%v", err)
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("making dir error: :%w", err)
 	}
 
-	err := ioutil.WriteFile(fullPath, pd.Body, 0644)
+	err := os.WriteFile(fullPath, pd.Body, 0o600)
 	if err != nil {
-		return fmt.Errorf("writing file error: %v", err)
+		return fmt.Errorf("writing file error: %w", err)
 	}
 
 	// clear body to release memory

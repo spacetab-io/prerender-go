@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"errors"
+	"fmt"
 
-	cfg "github.com/spacetab-io/prerender-go/configuration"
+	"github.com/spacetab-io/prerender-go/configuration"
+	"github.com/spacetab-io/prerender-go/pkg/errors"
 	"github.com/spacetab-io/prerender-go/pkg/repository/files"
 	"github.com/spacetab-io/prerender-go/pkg/repository/s3"
 	"github.com/spacetab-io/prerender-go/pkg/service"
@@ -14,15 +15,25 @@ const (
 	S3Storage    = "s3"
 )
 
-var ErrUnknownType = errors.New("storage type is unknown or  not set")
+//nolint:ireturn,nolintlint // we need it here
+func NewRepository(storageCfg configuration.StorageConfig) (service.Repository, error) {
+	var (
+		rep service.Repository
+		err error
+	)
 
-func NewRepository(storageCfg cfg.StorageConfig) (service.Repository, error) {
 	switch storageCfg.Type {
 	case LocalStorage:
-		return files.NewStorage(storageCfg.Local.StoragePath), nil
+		rep, err = files.NewStorage(storageCfg.Local.StoragePath), nil
 	case S3Storage:
-		return s3.NewStorage(storageCfg.S3)
+		rep, err = s3.NewStorage(storageCfg.S3)
+	default:
+		return nil, errors.ErrUnknownType
 	}
 
-	return nil, ErrUnknownType
+	if err != nil {
+		return nil, fmt.Errorf("new repository error: %w", err)
+	}
+
+	return rep, nil
 }

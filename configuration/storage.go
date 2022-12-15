@@ -27,7 +27,7 @@ type S3Config struct {
 }
 
 type LocalStorageConfig struct {
-	StoragePath string `yaml:"storage_path"`
+	StoragePath string `yaml:"storage_path"` //nolint:tagliatelle // legacy
 }
 
 type StorageConfig struct {

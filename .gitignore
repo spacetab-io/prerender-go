@@ -8,4 +8,6 @@ configuration/*/*
 !configuration/defaults/*
 c.out
 coverage.html
-.golangci.yml
+.golangci_*.yml
+linter.mk
+tests.mk

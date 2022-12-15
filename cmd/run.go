@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"runtime"
 	"time"
 
@@ -28,31 +29,30 @@ func run(cmd *cobra.Command, _ []string) error {
 		Str("lookup strategy", cfg.Prerender.Lookup.Type).
 		Str("render wait strategy", cfg.Prerender.WaitFor).
 		Msg("start rendering pages")
+
 	pages, err := srv.PreparePages(links)
 	if err != nil {
 		log.Error().Err(err).Msg("prepare pages error")
 
-		return err
+		return fmt.Errorf("prepare pages error: %w", err)
 	}
 
 	maxWorkers := countMaxWorkers(cfg)
 
-	if err := srv.RenderPages(pages, maxWorkers); err != nil {
+	if err := srv.RenderPages(cmd.Context(), pages, maxWorkers); err != nil {
 		log.Error().Err(err).Msg("render pages error")
 
-		return err
+		return fmt.Errorf("render pages error: %w", err)
 	}
 
-	timeEnd := time.Now()
-
-	srv.PrepareRenderReport(pages, timeEnd.Sub(timeStart), maxWorkers)
+	cmd.Print(srv.PrepareRenderReport(pages, time.Since(timeStart), maxWorkers))
 
 	return nil
 }
 
 func countMaxWorkers(cfg *configuration.Config) int {
 	numprocs := runtime.GOMAXPROCS(runtime.NumCPU())
-	maxWorkers := 2 * numprocs // nolint:gomnd
+	maxWorkers := 2 * numprocs //nolint:gomnd
 
 	if cfg.Prerender.ConcurrentLimit == 0 {
 		return numprocs

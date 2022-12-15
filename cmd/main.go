@@ -67,6 +67,7 @@ func getConfigs(ctx context.Context) (
 	return cfg, nil
 }
 
+//nolint:ireturn,nolintlint // we need it here
 func initCfgAndService(cmd *cobra.Command) (*configuration.Config, service.Service, error) {
 	cfg, err := getConfigs(cmd.Context())
 	if err != nil {

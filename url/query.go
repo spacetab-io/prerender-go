@@ -5,7 +5,7 @@ import (
 	"sort"
 )
 
-//PrepareSortedQueryParams Extract only query params that are needed to preserve and sort them alphabetically in result query string
+// PrepareSortedQueryParams Extract only query params that are needed to preserve and sort them alphabetically in result query string.
 func PrepareSortedQueryParams(uri *url.URL, queryParamsToSave []string) {
 	query := uri.Query()
 	queryParams := make(url.Values)

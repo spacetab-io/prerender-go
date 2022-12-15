@@ -1,16 +1,16 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/yterajima/go-sitemap"
-
+	"github.com/spacetab-io/prerender-go/pkg/errors"
+	"github.com/spacetab-io/prerender-go/pkg/log"
 	"github.com/spacetab-io/prerender-go/pkg/models"
 	prerenderUrl "github.com/spacetab-io/prerender-go/url"
+	"github.com/yterajima/go-sitemap"
 )
 
 func (s *service) PreparePages(links []string) ([]*models.PageData, error) {
@@ -19,7 +19,7 @@ func (s *service) PreparePages(links []string) ([]*models.PageData, error) {
 	for _, link := range links {
 		uri, err := url.Parse(link)
 		if err != nil {
-			return nil, fmt.Errorf("parse link url error: %v", err)
+			return nil, fmt.Errorf("parse link url error: %w", err)
 		}
 
 		prerenderUrl.PrepareSortedQueryParams(uri, s.prerenderConfig.Lookup.ParamsToSave)
@@ -67,7 +67,7 @@ func (s *service) GetLinksForRender() ([]string, error) {
 		return links, nil
 	}
 
-	return nil, errors.New("lookup type is wrong or not set")
+	return nil, errors.ErrWrongLookupType
 }
 
 func IsInSlice(links []string, link string) bool {
@@ -82,14 +82,14 @@ func IsInSlice(links []string, link string) bool {
 
 func (s *service) GetUrlsFromLinksList() ([]string, error) {
 	if s.prerenderConfig.Lookup.BaseURL == "" {
-		return nil, errors.New("base_url is not set in config")
+		return nil, errors.ErrNoBaseURL
 	}
 
-	var links = make([]string, 0)
+	links := make([]string, 0)
 
 	for _, link := range s.prerenderConfig.Lookup.PageURLs {
 		if strings.Contains(link, "https://") {
-			return nil, errors.New("link contains base url")
+			return nil, errors.ErrLinkHasBaseURL
 		}
 
 		links = append(links, s.prerenderConfig.Lookup.BaseURL+link)
@@ -109,8 +109,9 @@ func (s *service) GetUrlsFromSitemaps() ([]string, error) {
 
 		for _, sitemapURL := range smap.URL {
 			if sitemapURL.LastMod == "" {
-				continue
+				log.Warn().Str("sitemap url", sitemapURL.Loc).Msg("last modified is empty")
 
+				continue
 			}
 
 			lm, err := lastModifiedFrom(sitemapURL.LastMod)
@@ -133,5 +134,10 @@ func (s *service) GetUrlsFromSitemaps() ([]string, error) {
 
 func lastModifiedFrom(lastMod string) (time.Time, error) {
 	// 2021-09-21T07:31:56+00:00
-	return time.Parse(time.RFC3339, lastMod)
+	t, err := time.Parse(time.RFC3339, lastMod)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("lastModifiedFrom parse error: %w", err)
+	}
+
+	return t, nil
 }
